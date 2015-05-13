@@ -1,0 +1,125 @@
+#include <string.h>
+#include <stdio.h>      
+#include <sys/socket.h> 
+#include <arpa/inet.h>  
+#include <stdlib.h>     
+#include <string.h>     
+#include <unistd.h>     
+
+void Error(char *errorMessage)
+{
+    perror(errorMessage);
+    exit(1);
+}
+
+int main()
+{ 
+    printf("\n***Nouveau Conversation***\n\n");
+    
+    int intServPort;
+    printf("Entrer le numero de port utilise par le recepteur\n");
+    scanf("%i",&intServPort);
+    printf("\n");
+
+    char *strServAddr;
+    strServAddr=(char *)malloc(256);
+    printf("Entrer l'@IP du recepteur: ");
+    scanf("%s",strServAddr);
+    printf("\n");
+
+    char *strNom;
+    strNom=(char *)malloc(256);
+    printf("Entrer votre Nom: ");
+    scanf("%s",strNom);
+    printf("\n");
+
+    int sock;                        /* Socket descriptor */
+    struct sockaddr_in echoServAddr; /* Echo server address */
+
+    /*choix de sevice*/
+    int Fin=-1;
+    while (Fin==-1){
+    int intServiceChoisi;
+    printf("Vous avez le choix de faire soit: \n1.Envoyer un message \n2.Fin\n");
+    printf("Entrer le choix par numero\n");
+    scanf("%i",&intServiceChoisi);
+    printf("\n");
+    
+    switch (intServiceChoisi){
+
+        case 1 :
+
+        /* Create a reliable, stream socket using TCP */
+        if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+           Error("Echec socket");
+
+        memset(&echoServAddr, 0, sizeof(echoServAddr));     /* Zero out structure */
+        echoServAddr.sin_family      = AF_INET;             /* Internet address family */
+        echoServAddr.sin_addr.s_addr = inet_addr(strServAddr) ;
+        echoServAddr.sin_port        = htons(intServPort); /* Server port */
+
+        /* Establish the connection to the echo server*/
+        if (connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
+            Error("Echec connect");
+
+	char *strMessage;    
+    	strMessage=(char *)malloc(256);
+	printf("Taper le message\n");
+	scanf("%s",strMessage);
+	printf("\n");
+
+	char strMessageComplet[256];
+    	strcpy(strMessageComplet,strNom);
+   	strcat(strMessageComplet,"_dit:");   	
+	strcat(strMessageComplet,strMessage);
+	 
+	if (send(sock,strMessageComplet,strlen(strMessageComplet),0)<0)
+            Error("Echec en envoi du message ");
+
+	
+        close(sock);
+	break;
+    
+      case 2 :
+
+	/* Create a reliable, stream socket using TCP */
+        if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+           Error("Echec socket");
+
+        memset(&echoServAddr, 0, sizeof(echoServAddr));     /* Zero out structure */
+        echoServAddr.sin_family      = AF_INET;             /* Internet address family */
+        echoServAddr.sin_addr.s_addr = inet_addr(strServAddr) ;
+        echoServAddr.sin_port        = htons(intServPort); /* Server port */
+
+        /* Establish the connection to the echo server*/
+        if (connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
+            Error("Echec connect");
+
+        /*1.Envoyer le titre de match vers l'autre match*/
+	/*2.Envoyer le resultat final du match vers l'autre match*/
+	/*3.Envoyer un signal du fin du match */
+	
+	if (send(sock,"Fin_Conversation",strlen("Fin_Conversation"),0)<0)
+            Error("Echec en ecriture du nom du recepteur ");
+
+         Fin=1;
+         break;
+         
+      default:
+         break;
+       }
+ }
+}
+
+
+
+
+
+   
+
+
+
+
+    
+ 
+
